@@ -3,6 +3,9 @@
 *.csv
 *.swp
 ~*
+data/
+profile_jpg/
+markdown/
 
 .DS_Store
 
