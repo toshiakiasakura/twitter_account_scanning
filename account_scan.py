@@ -9,6 +9,8 @@ class AccountUtils():
     user = "@e_aki_ro" 
     path2data = "./data"
     profile_img_prefix = "https://pbs.twimg.com/profile_images" 
+    default_keys = ["name", "screen_name", "id", "location", "profile_location",
+         "description", "followers_count", "friends_count", "following"] 
     
     def set_api(self):
         """Set api instance using environmental variables. 
@@ -196,8 +198,7 @@ class AccountUtils():
         """
         
         if keys == None: 
-            keys = ["name", "screen_name", "id", "location", "profile_location",
-                 "description", "followers_count", "friends_count", "following"] 
+            keys = self.default_keys
 
         print("#" * 50)
         for k in keys:
@@ -221,6 +222,54 @@ class AccountUtils():
         
         for user_info in multi_user_info:
             self.display_one_user(user_info, keys)
+
+    def markdown_one_user(self, user_info, keys=None): 
+        """Return markdown formatted text. 
+
+        Args:
+            user_info (dict): json format of User Object. 
+            
+        Returns:
+            str : markdown formatted text. 
+        """
+        s = "" 
+        if keys == None: 
+            keys = self.default_keys
+
+        s += "* * *\n"
+        for k in keys:
+            s += f"- {k: <17} : {user_info[k]}\n"
+
+        # print url 
+        k = "urls"
+        urls = self.get_expanded_urls(user_info)
+        urls = "\n".join(urls)
+        s += f"- {k: <17} : {urls}\n"
+
+        # print account url
+        account_url = f"https://twitter.com/{user_info['screen_name']}"
+        s += f"- account url : [{account_url}]({account_url})\n"
+
+        # with profile picture. 
+        _,path = self.get_profile_jpg_path(user_info)
+        if not os.path.exists(path):
+            self.fetch_profile_jpg(user_info)
+        s += f"""\n\n<img src=".{path}" width="200px">\n"""
+
+        return(s)
+
+    def markdown_multiple_users(self, multi_user_info, keys=None):
+        """Return multiple user information formatted as markdown. 
+
+        Args: 
+            multi_user_info (list) : contaning json formats of User Object. 
+
+        Returns:
+            str : markdown formatted text. 
+        """ 
+        s = [self.markdown_one_user(user_info, keys) for user_info in multi_user_info ] 
+        s = "\n".join(s)
+        return(s)
 
     def get_expanded_urls(self, user_info): 
         """Given user information of json format, return expanded_url. 
@@ -272,11 +321,46 @@ class AccountUtils():
         return(filtered)
 
     def display_target_followers(self, screen_name): 
+        """Display filtered followers information of target account. 
+        Given screen_name, display filtered user information.
+
+        Args: 
+            screen_name (str): target account's screen name. 
+        """
         user_IDs = self.collect_user_id(user_= screen_name, tp="followers") 
         self.save_multiple_user_info(user_IDs) 
         multi_user_info = self.read_multiple_user_info(user_IDs)
         filtered_user_infos = self.get_filtered_users(multi_user_info)
         self.display_multiple_users(filtered_user_infos)
+
+    def markdown_target_accounts(self, screen_name,tp="followers",open_=False):
+        """Save and Open followers information of target account as markdown format. 
+        Given screen_name, save filtered user information to markdown text. 
+
+        Args: 
+            screen_name (str): target account's screen name. 
+            open_ (bool) : After saving file, open it in the browser or not.
+        """
+        user_IDs = self.collect_user_id(user_= screen_name, tp=tp) 
+        self.save_multiple_user_info(user_IDs) 
+        multi_user_info = self.read_multiple_user_info(user_IDs)
+        filtered_user_infos = self.get_filtered_users(multi_user_info)
+        s = self.markdown_multiple_users(filtered_user_infos)
+
+        target_id = self.convert_screen_name_into_id(screen_name)
+        target_info = self.read_user_info(target_id) 
+        target_md = "# Target Account\n"
+        target_md += self.markdown_one_user(target_info)
+        target_md += f"\n\n## Filtered {tp} information\n\n"
+
+        res = target_md + s 
+        path = f"./markdown/{target_id}.md"
+        with open(path, "w") as f:
+            f.write(res)
+        if open_:
+            webbrowser.open(path, new=2)
+
+        
     
     def get_user_infos_in_data(self, n=30):
         """get user information from "path2data" directory. 
