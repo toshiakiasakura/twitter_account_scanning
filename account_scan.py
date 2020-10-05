@@ -4,6 +4,7 @@ import os
 import glob
 import requests 
 import webbrowser
+from tqdm import tqdm
 
 class AccountUtils():
     user = "@e_aki_ro" 
@@ -49,8 +50,8 @@ class AccountUtils():
         else:
             raise Exception("Unknown type of a variable.")
         
-        for i, page in enumerate(tweepy.Cursor(method, id=user_).pages(n)):
-            for j, user_ID in enumerate(page):
+        for i, page in enumerate( tweepy.Cursor(method, id=user_).pages(n) ):
+            for j, user_ID in enumerate(tqdm(page,desc="collect ID")):
                 user_IDs.append(user_ID)
         
         if check_limit:
@@ -120,7 +121,7 @@ class AccountUtils():
         Args: 
             ids (list): user ids. 
         """
-        for i, id_ in enumerate(ids):
+        for i, id_ in enumerate(tqdm(ids,desc="save infos")):
             self.save_user_info(id_)
             if i % 100 == 0:
                 status = self.check_api_rate_limit("API.get_user")
@@ -267,7 +268,8 @@ class AccountUtils():
         Returns:
             str : markdown formatted text. 
         """ 
-        s = [self.markdown_one_user(user_info, keys) for user_info in multi_user_info ] 
+        s = [self.markdown_one_user(user_info, keys) for user_info 
+                in tqdm(multi_user_info, desc="markdon") ] 
         s = "\n".join(s)
         return(s)
 
