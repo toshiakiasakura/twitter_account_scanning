@@ -7,7 +7,6 @@ import webbrowser
 from tqdm import tqdm
 
 class AccountUtils():
-    user = "@e_aki_ro" 
     path2data = "./data"
     profile_img_prefix = "https://pbs.twimg.com/profile_images" 
     default_keys = ["name", "screen_name", "id", "location", "profile_location",
@@ -71,7 +70,7 @@ class AccountUtils():
             s = status["resources"]["friends"]["/friends/list"]
         elif method == "API.followers_ids":
             s = status["resources"]["followers"]["/followers/ids"]
-        elif method == "API.friedns_ids":
+        elif method == "API.friends_ids":
             s = status["resources"]["friends"]["/friends/ids"]
         elif method == "API.show_friendship":
             s = status["resources"]["friendships"]["/friendships/show"]
@@ -82,7 +81,7 @@ class AccountUtils():
         elif method == "API.get_user":
             s = status["resources"]["users"]["/users/:id"]
         else:
-            s = f"{tp} was not found. Type appropriate type"
+            s = f"{method} was not found. Type appropriate type"
 
         print(method)
         print(s)
