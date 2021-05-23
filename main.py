@@ -1,3 +1,5 @@
+import os
+
 import account_scan
 import argparse
 
@@ -7,6 +9,12 @@ summarized into markdown."""
 
 def main():
     args = parse_args()
+
+    if not os.path.exists("./profile_jpg"):
+        os.mkdir("./profile_jpg")
+
+    if not os.path.exists("./markdown"):
+        os.mkdir("./markdown")
 
     ac_scan = account_scan.AccountUtils()
     ac_scan.set_api()

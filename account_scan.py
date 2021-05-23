@@ -1,16 +1,18 @@
-import tweepy
 import json
 import os
 import glob
 import requests 
 import webbrowser
+
+import tweepy
 from tqdm import tqdm
+import pandas as pd
 
 class AccountUtils():
     path2data = "./data"
     profile_img_prefix = "https://pbs.twimg.com/profile_images" 
     default_keys = ["name", "screen_name", "id", "location", "profile_location",
-         "description", "followers_count", "friends_count", "following"] 
+         "description", "friends_count", "followers_count", "following"] 
     
     def set_api(self):
         """Set api instance using environmental variables. 
@@ -122,9 +124,9 @@ class AccountUtils():
         """
         for i, id_ in enumerate(tqdm(ids,desc="save infos")):
             self.save_user_info(id_)
-            if i % 100 == 0:
+            if i % 100 == 50:
                 status = self.check_api_rate_limit("API.get_user")
-                if status["remaining"] < 100:
+                if status["remaining"] <= 100:
                     break
                 
         if check_limit:
@@ -309,7 +311,10 @@ class AccountUtils():
         b2  = user_info["friends_count"] <= n_friends
         b3  = s_ not in user_info["name"]
         
-        res = all([b1, b2, b3])
+        date = pd.to_datetime(user_info["created_at"])
+        b4 = (pd.Timestamp.now(tz="UTC") - date) < pd.Timedelta(360, "D")
+        
+        res = all([b1, b2, b3, b4])
         return(res) 
 
     def get_filtered_users(self, multi_user_info):
@@ -360,8 +365,6 @@ class AccountUtils():
             f.write(res)
         if open_:
             webbrowser.open(path, new=2)
-
-        
     
     def get_user_infos_in_data(self, n=30):
         """get user information from "path2data" directory. 
@@ -386,7 +389,6 @@ class AccountUtils():
         url = user_info["profile_image_url_https"]
         dir_, path = self.get_profile_jpg_path(user_info)
 
-        
         if not os.path.exists(dir_):
             os.mkdir(dir_)
         if not os.path.exists(path):
@@ -394,7 +396,7 @@ class AccountUtils():
             img = res.content
             with open(path, "wb") as f:
                 f.write(img)
-        
+
     def get_profile_jpg_path(self, user_info):
         """Return profile jpg path. 
 
