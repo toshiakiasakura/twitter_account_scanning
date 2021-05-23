@@ -269,8 +269,11 @@ class AccountUtils():
         Returns:
             str : markdown formatted text. 
         """ 
-        s = [self.markdown_one_user(user_info, keys) for user_info 
-                in tqdm(multi_user_info, desc="markdon") ] 
+        s = []
+        for i, user_info in enumerate(tqdm(multi_user_info, desc="markdon")):
+            text = self.markdown_one_user(user_info, keys)
+            text = text + f"\n< index : {i} >\n" 
+            s.append(text)
         s = "\n".join(s)
         return(s)
 
